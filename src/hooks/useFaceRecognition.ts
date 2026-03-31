@@ -7,6 +7,18 @@ interface LabeledPerson {
   descriptor: Float32Array;
 }
 
+/** Pesos oficiais do face-api.js (CORS ok); usa se /models no site falhar. */
+const REMOTE_MODEL_BASE =
+  "https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights";
+
+async function loadFaceModels(modelBaseUri: string) {
+  await Promise.all([
+    faceapi.nets.ssdMobilenetv1.loadFromUri(modelBaseUri),
+    faceapi.nets.faceLandmark68Net.loadFromUri(modelBaseUri),
+    faceapi.nets.faceRecognitionNet.loadFromUri(modelBaseUri),
+  ]);
+}
+
 export function useFaceRecognition() {
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -15,18 +27,19 @@ export function useFaceRecognition() {
   const labeledRef = useRef<LabeledPerson[]>([]);
   const [dbReady, setDbReady] = useState(false);
 
-  // Load models
+  // Load models (pasta local em public/models no deploy; senão CDN do repositório oficial)
   useEffect(() => {
     const load = async () => {
       const base = import.meta.env.BASE_URL.endsWith("/")
         ? import.meta.env.BASE_URL
         : `${import.meta.env.BASE_URL}/`;
-      const MODEL_URL = `${base}models`;
-      await Promise.all([
-        faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-      ]);
+      const localModels = `${base}models`;
+      try {
+        await loadFaceModels(localModels);
+      } catch (e) {
+        console.warn("Modelos locais indisponíveis, usando CDN:", e);
+        await loadFaceModels(REMOTE_MODEL_BASE);
+      }
       setModelsLoaded(true);
       setLoading(false);
     };
@@ -43,25 +56,26 @@ export function useFaceRecognition() {
     if (!modelsLoaded) return;
     setLoading(true);
     const labeled: LabeledPerson[] = [];
-
-    for (const person of persons) {
-      try {
-        const img = await faceapi.fetchImage(person.imageSrc);
-        const detection = await faceapi
-          .detectSingleFace(img)
-          .withFaceLandmarks()
-          .withFaceDescriptor();
-        if (detection) {
-          labeled.push({ person, descriptor: detection.descriptor });
+    try {
+      for (const person of persons) {
+        try {
+          const img = await faceapi.fetchImage(person.imageSrc);
+          const detection = await faceapi
+            .detectSingleFace(img)
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+          if (detection) {
+            labeled.push({ person, descriptor: detection.descriptor });
+          }
+        } catch (e) {
+          console.warn(`Could not process ${person.name}:`, e);
         }
-      } catch (e) {
-        console.warn(`Could not process ${person.name}:`, e);
       }
+      labeledRef.current = labeled;
+    } finally {
+      setDbReady(true);
+      setLoading(false);
     }
-
-    labeledRef.current = labeled;
-    setDbReady(true);
-    setLoading(false);
   }, [modelsLoaded, persons]);
 
   useEffect(() => {
