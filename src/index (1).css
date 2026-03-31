@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 10%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 18% 14%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 14%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 15% 18%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 45 100% 55%;
+    --accent-foreground: 220 20% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 145 70% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 220 15% 22%;
+    --input: 220 15% 22%;
+    --ring: 210 100% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 20% 8%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 210 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 16%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 220 15% 18%;
+    --sidebar-ring: 210 100% 50%;
+
+    --font-heading: 'Rajdhani', sans-serif;
+    --font-body: 'Source Sans 3', sans-serif;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+@layer utilities {
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(210 100% 50% / 0.3), 0 0 60px hsl(210 100% 50% / 0.1);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px hsl(45 100% 55% / 0.3), 0 0 60px hsl(45 100% 55% / 0.1);
+  }
+
+  .glow-success {
+    box-shadow: 0 0 20px hsl(145 70% 42% / 0.3), 0 0 60px hsl(145 70% 42% / 0.1);
+  }
+
+  .glow-destructive {
+    box-shadow: 0 0 20px hsl(0 72% 51% / 0.3), 0 0 60px hsl(0 72% 51% / 0.1);
+  }
+
+  .scanline {
+    background: linear-gradient(
+      to bottom,
+      transparent 50%,
+      hsl(210 100% 50% / 0.03) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px hsl(210 100% 50% / 0.2); }
+  50% { box-shadow: 0 0 40px hsl(210 100% 50% / 0.5); }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
