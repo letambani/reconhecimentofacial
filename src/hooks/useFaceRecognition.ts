@@ -10,6 +10,7 @@ interface LabeledPerson {
 export function useFaceRecognition() {
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [persons, setPersons] = useState<Person[]>(initialPersons);
   const labeledRef = useRef<LabeledPerson[]>([]);
   const [dbReady, setDbReady] = useState(false);
@@ -17,7 +18,10 @@ export function useFaceRecognition() {
   // Load models
   useEffect(() => {
     const load = async () => {
-      const MODEL_URL = `${import.meta.env.BASE_URL}models`;
+      const base = import.meta.env.BASE_URL.endsWith("/")
+        ? import.meta.env.BASE_URL
+        : `${import.meta.env.BASE_URL}/`;
+      const MODEL_URL = `${base}models`;
       await Promise.all([
         faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
         faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -28,6 +32,8 @@ export function useFaceRecognition() {
     };
     load().catch((e) => {
       console.error("Failed to load models:", e);
+      const msg = e instanceof Error ? e.message : String(e);
+      setLoadError(msg);
       setLoading(false);
     });
   }, []);
@@ -156,5 +162,5 @@ export function useFaceRecognition() {
     []
   );
 
-  return { modelsLoaded, loading, dbReady, persons, matchFace, matchAllFaces, addPerson };
+  return { modelsLoaded, loading, loadError, dbReady, persons, matchFace, matchAllFaces, addPerson };
 }

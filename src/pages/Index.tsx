@@ -9,7 +9,8 @@ import { Person } from "@/data/persons";
 type AppState = "camera" | "result" | "register";
 
 export default function Index() {
-  const { loading, dbReady, persons, matchFace, matchAllFaces, addPerson } = useFaceRecognition();
+  const { loading, loadError, modelsLoaded, dbReady, matchFace, matchAllFaces, addPerson } =
+    useFaceRecognition();
   const [state, setState] = useState<AppState>("camera");
   const [scanning, setScanning] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -54,12 +55,39 @@ export default function Index() {
     setSelectedUnknownIndex(null);
   };
 
-  if (loading || !dbReady) {
+  if (loadError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="font-heading text-destructive">Não foi possível carregar os modelos de IA</p>
+        <p className="max-w-md text-sm text-muted-foreground">{loadError}</p>
+        <button
+          type="button"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          onClick={() => window.location.reload()}
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
+  if (!modelsLoaded) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
         <p className="font-heading text-sm uppercase tracking-widest text-muted-foreground">
           Carregando modelos de reconhecimento...
+        </p>
+      </div>
+    );
+  }
+
+  if (!dbReady || loading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="font-heading text-sm uppercase tracking-widest text-muted-foreground">
+          Preparando base de rostos cadastrados...
         </p>
       </div>
     );
