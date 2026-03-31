@@ -17,7 +17,7 @@ export function useFaceRecognition() {
   // Load models
   useEffect(() => {
     const load = async () => {
-      const MODEL_URL = "/models";
+      const MODEL_URL = `${import.meta.env.BASE_URL}models`;
       await Promise.all([
         faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
         faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),

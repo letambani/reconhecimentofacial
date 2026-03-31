@@ -4,7 +4,9 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
+// GitHub Pages project URL: https://<user>.github.io/<repo>/
 export default defineConfig(({ mode }) => ({
+  base: mode === "production" ? "/reconhecimentofacial/" : "/",
   server: {
     host: "::",
     port: 8080,
