@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Camera, RotateCcw, Upload } from "lucide-react";
 import { Person } from "@/data/persons";
+import { distanceToSimilarityPercent } from "@/lib/faceDescriptorSimilarity";
 
 export interface FaceResult {
   person: Person | null;
@@ -149,7 +150,7 @@ export default function CameraCapture({
 
       // Label background
       const label = isMatch
-        ? `${result.person!.name} (${Math.round((1 - result.distance!) * 100)}%)`
+        ? `${result.person!.name} (${distanceToSimilarityPercent(result.distance)}%)`
         : "Desconhecido";
       ctx.font = "bold 16px sans-serif";
       const textWidth = ctx.measureText(label).width;

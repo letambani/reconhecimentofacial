@@ -1,5 +1,6 @@
 import { Person } from "@/data/persons";
 import { CheckCircle2, XCircle, UserPlus } from "lucide-react";
+import { distanceToSimilarityPercent } from "@/lib/faceDescriptorSimilarity";
 
 interface MatchResultProps {
   person: Person | null;
@@ -17,7 +18,7 @@ export default function MatchResult({
   onReset,
 }: MatchResultProps) {
   const matched = person !== null;
-  const confidence = distance !== null ? Math.round((1 - distance) * 100) : 0;
+  const similarityPercent = distance !== null ? distanceToSimilarityPercent(distance) : 0;
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -55,17 +56,23 @@ export default function MatchResult({
               <p className="text-xs text-muted-foreground">
                 Registrado: {person.registeredAt}
               </p>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
+              <div
+                className="mt-2 flex items-center gap-2"
+                title="Indicador derivado da distância euclidiana no limiar de 0,6; não é probabilidade calibrada."
+              >
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-success transition-all"
-                    style={{ width: `${confidence}%` }}
+                    style={{ width: `${similarityPercent}%` }}
                   />
                 </div>
                 <span className="text-xs font-heading text-success">
-                  {confidence}%
+                  {similarityPercent}%
                 </span>
               </div>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">
+                Compatibilidade estimada (distância entre descritores, limiar 0,6)
+              </p>
               {person.notes && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Obs: {person.notes}

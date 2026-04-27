@@ -1,6 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import * as faceapi from "face-api.js";
 import { Person, initialPersons } from "@/data/persons";
+import {
+  FACE_MATCH_DISTANCE_THRESHOLD,
+  distanceToSimilarityPercent,
+  logFaceMatchDebug,
+} from "@/lib/faceDescriptorSimilarity";
 
 interface LabeledPerson {
   person: Person;
@@ -100,7 +105,10 @@ export function useFaceRecognition() {
           bestMatch = { person: entry.person, distance };
         }
       }
-      if (bestMatch && bestMatch.distance < 0.6) return bestMatch;
+      if (bestMatch && bestMatch.distance < FACE_MATCH_DISTANCE_THRESHOLD) {
+        logFaceMatchDebug("matchFace", bestMatch.distance, distanceToSimilarityPercent(bestMatch.distance));
+        return bestMatch;
+      }
       return null;
     },
     [dbReady]
@@ -124,7 +132,7 @@ export function useFaceRecognition() {
         .withFaceDescriptors();
       if (!detections || detections.length === 0) return [];
 
-      return detections.map((det) => {
+      return detections.map((det, index) => {
         const { x, y, width, height } = det.detection.box;
         let bestMatch: { person: Person; distance: number } | null = null;
         for (const entry of labeledRef.current) {
@@ -133,7 +141,9 @@ export function useFaceRecognition() {
             bestMatch = { person: entry.person, distance };
           }
         }
-        if (bestMatch && bestMatch.distance < 0.6) {
+        if (bestMatch && bestMatch.distance < FACE_MATCH_DISTANCE_THRESHOLD) {
+          const sim = distanceToSimilarityPercent(bestMatch.distance);
+          logFaceMatchDebug(`matchAllFaces#${index} → ${bestMatch.person.name}`, bestMatch.distance, sim);
           return { person: bestMatch.person, distance: bestMatch.distance, box: { x, y, width, height } };
         }
         return { person: null, distance: null, box: { x, y, width, height } };

@@ -1,9 +1,9 @@
 import { useState, useCallback } from "react";
 import { Shield, Loader2 } from "lucide-react";
 import CameraCapture, { FaceResult } from "@/components/CameraCapture";
-import MatchResult from "@/components/MatchResult";
 import QuickRegister from "@/components/QuickRegister";
 import { useFaceRecognition } from "@/hooks/useFaceRecognition";
+import { distanceToSimilarityPercent } from "@/lib/faceDescriptorSimilarity";
 import { Person } from "@/data/persons";
 
 type AppState = "camera" | "result" | "register";
@@ -140,7 +140,7 @@ export default function Index() {
                     <div className="min-w-0 flex-1">
                       <p className="break-words text-sm font-heading text-foreground">{r.person!.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Confiança: {Math.round((1 - r.distance!) * 100)}%
+                        Compatibilidade: {distanceToSimilarityPercent(r.distance)}%
                       </p>
                       {r.person!.notes && (
                         <p className="text-xs text-muted-foreground">Obs: {r.person!.notes}</p>
