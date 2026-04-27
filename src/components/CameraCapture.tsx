@@ -234,8 +234,8 @@ export default function CameraCapture({
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <fieldset className="w-full max-w-md flex flex-col gap-2 border-0 p-0 m-0">
+    <div className="flex w-full min-w-0 max-w-full flex-col items-center gap-3 sm:gap-4">
+      <fieldset className="m-0 flex w-full min-w-0 max-w-md flex-col gap-2 border-0 p-0">
         <legend className="sr-only">Câmera</legend>
         <p className="text-[10px] font-heading uppercase tracking-widest text-muted-foreground text-center">
           Câmera
@@ -270,20 +270,21 @@ export default function CameraCapture({
         </div>
       </fieldset>
 
-      <div className="relative w-full max-w-md overflow-hidden rounded-lg border-2 border-primary/50 glow-primary">
+      {/* Proporção 4:3; no mobile limita largura por altura (svh) para não ocupar a tela inteira. */}
+      <div className="relative mx-auto aspect-[4/3] w-full min-w-0 max-w-[min(100%,28rem,calc(52svh*4/3))] overflow-hidden rounded-lg border-2 border-primary/50 glow-primary sm:max-w-md">
         {scanning && (
           <div className="absolute inset-0 z-10 pointer-events-none">
             <div className="absolute inset-x-0 h-1 bg-primary/60 animate-scan" />
           </div>
         )}
         {/* Corner brackets */}
-        <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-primary z-10" />
-        <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-primary z-10" />
-        <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-primary z-10" />
-        <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-primary z-10" />
+        <div className="absolute top-2 left-2 z-10 h-6 w-6 border-l-2 border-t-2 border-primary" />
+        <div className="absolute top-2 right-2 z-10 h-6 w-6 border-r-2 border-t-2 border-primary" />
+        <div className="absolute bottom-2 left-2 z-10 h-6 w-6 border-b-2 border-l-2 border-primary" />
+        <div className="absolute bottom-2 right-2 z-10 h-6 w-6 border-b-2 border-r-2 border-primary" />
 
         {uploadPreviewUrl && (
-          <div className="absolute top-2 left-1/2 z-[15] -translate-x-1/2 rounded-md bg-background/90 px-2 py-1 text-[10px] font-heading uppercase tracking-wider text-primary border border-primary/40">
+          <div className="absolute left-1/2 top-2 z-[15] -translate-x-1/2 rounded-md border border-primary/40 bg-background/90 px-2 py-1 text-[10px] font-heading uppercase tracking-wider text-primary">
             Imagem enviada
           </div>
         )}
@@ -293,8 +294,8 @@ export default function CameraCapture({
           autoPlay
           playsInline
           muted
-          className={`w-full aspect-[4/3] object-cover bg-muted ${
-            uploadPreviewUrl ? "invisible absolute inset-0 h-full w-full" : ""
+          className={`absolute inset-0 z-0 h-full w-full bg-muted object-cover ${
+            uploadPreviewUrl ? "invisible" : ""
           }`}
         />
         {uploadPreviewUrl && (
@@ -302,14 +303,14 @@ export default function CameraCapture({
             ref={previewImgRef}
             src={uploadPreviewUrl}
             alt="Imagem selecionada para análise"
-            className="relative z-[5] w-full aspect-[4/3] object-cover bg-muted"
+            className="absolute inset-0 z-[5] h-full w-full bg-muted object-cover"
             onLoad={() => setPreviewLayoutNonce((n) => n + 1)}
           />
         )}
         {/* Overlay canvas for bounding boxes */}
         <canvas
           ref={overlayRef}
-          className="absolute inset-0 w-full h-full pointer-events-none z-20"
+          className="pointer-events-none absolute inset-0 z-20 h-full w-full"
         />
         <canvas ref={canvasRef} className="hidden" />
 
@@ -339,13 +340,13 @@ export default function CameraCapture({
         </p>
       )}
 
-      <div className="flex flex-wrap gap-3 justify-center">
+      <div className="flex w-full min-w-0 max-w-md flex-wrap justify-center gap-2 sm:gap-3">
         <button
           onClick={capture}
           disabled={!streaming || scanning}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-heading font-semibold uppercase tracking-wider text-sm hover:brightness-110 transition disabled:opacity-40 disabled:cursor-not-allowed glow-primary"
+          className="flex flex-1 min-w-[8.5rem] items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 font-heading text-sm font-semibold uppercase tracking-wider text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 glow-primary sm:min-w-0 sm:flex-none sm:px-6 sm:py-3"
         >
-          <Camera className="w-5 h-5" />
+          <Camera className="h-5 w-5 shrink-0" />
           {scanning ? "Analisando..." : "Capturar"}
         </button>
         <button
@@ -354,19 +355,19 @@ export default function CameraCapture({
             setCameraNotice(null);
             void startCamera();
           }}
-          className="flex items-center gap-2 px-4 py-3 rounded-lg bg-secondary text-secondary-foreground font-heading font-semibold uppercase tracking-wider text-sm hover:brightness-110 transition"
+          className="flex items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-2.5 font-heading text-sm font-semibold uppercase tracking-wider text-secondary-foreground transition hover:brightness-110 sm:px-4 sm:py-3"
           title="Reiniciar câmera"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="h-4 w-4 shrink-0" />
         </button>
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={scanning}
-          className="flex items-center gap-2 px-4 py-3 rounded-lg bg-secondary text-secondary-foreground font-heading font-semibold uppercase tracking-wider text-sm hover:brightness-110 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex min-w-0 flex-1 basis-full items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-2.5 font-heading text-sm font-semibold uppercase tracking-wider text-secondary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 sm:basis-auto sm:flex-none sm:px-4 sm:py-3"
         >
-          <Upload className="w-4 h-4" />
-          Enviar imagem
+          <Upload className="h-4 w-4 shrink-0" />
+          <span className="truncate">Enviar imagem</span>
         </button>
         <input
           ref={fileInputRef}

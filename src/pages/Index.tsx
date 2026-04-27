@@ -97,7 +97,7 @@ export default function Index() {
   const knownFaces = faceResults.filter((r) => r.person !== null);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col overflow-x-hidden">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container max-w-lg mx-auto flex items-center gap-3 py-3 px-4">
@@ -114,7 +114,7 @@ export default function Index() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 container max-w-lg mx-auto px-4 py-6 space-y-4">
+      <main className="container mx-auto min-h-0 w-full min-w-0 max-w-lg flex-1 space-y-3 px-3 py-4 sm:space-y-4 sm:px-4 sm:py-6">
         {state === "camera" && (
           <>
             <CameraCapture
@@ -130,15 +130,15 @@ export default function Index() {
                 {knownFaces.map((r, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-success/40 bg-success/5"
+                    className="flex min-w-0 items-center gap-3 rounded-lg border border-success/40 bg-success/5 p-3"
                   >
                     <img
                       src={r.person!.imageSrc}
                       alt={r.person!.name}
-                      className="w-12 h-12 rounded-md object-cover border border-border"
+                      className="h-12 w-12 shrink-0 rounded-md border border-border object-cover"
                     />
-                    <div className="flex-1">
-                      <p className="text-sm font-heading text-foreground">{r.person!.name}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words text-sm font-heading text-foreground">{r.person!.name}</p>
                       <p className="text-xs text-muted-foreground">
                         Confiança: {Math.round((1 - r.distance!) * 100)}%
                       </p>
@@ -153,9 +153,9 @@ export default function Index() {
                 {unknownFaces.map((_, i) => (
                   <div
                     key={`unknown-${i}`}
-                    className="flex items-center justify-between p-3 rounded-lg border border-destructive/40 bg-destructive/5"
+                    className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-destructive/40 bg-destructive/5 p-3"
                   >
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-heading text-foreground">Pessoa Desconhecida</p>
                       <p className="text-xs text-muted-foreground">Sem correspondência no banco</p>
                     </div>
