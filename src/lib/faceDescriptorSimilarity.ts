@@ -8,14 +8,19 @@
  * ancorava percentuais artificialmente no meio (~55–65%) para distâncias
  * reais comuns ~0,35–0,45.
  *
- * Aqui, percentuais exibidos são "compatibilidade" relativa ao limiar: quanto
- * mais perto de 0 a distância, maior o valor; no limiar → 0%.
+ * Aqui, percentuais exibidos são "compatibilidade" relativa ao limiar. O mapeamento
+ * linear puro muitas vezes ficava com valores baixos; aplicamos uma curva
+ * (expoente < 1) que mantém a ordem (menor distância → maior %) e deixa a faixa
+ * mais "generosa" visualmente, sem ser constante.
  */
 export const FACE_MATCH_DISTANCE_THRESHOLD = 0.6;
 
+/** < 1 eleva o meio da faixa; manter a ordem monotônica. Típ. 0,4–0,5. */
+const SIMILARITY_DISPLAY_GAMMA = 0.4;
+
 /**
- * Converte distância euclidiana em percentual 0–100, usando o limiar de match
- * como extremo superior. Válido só para distâncias abaixo do limiar.
+ * Converte distância euclidiana em percentual 0–100 (compatibilidade exibida).
+ * `linear = (limiar - d) / limiar`; depois `100 * linear^γ` (γ<1 suaviza para cima).
  */
 export function distanceToSimilarityPercent(
   distance: number | null | undefined,
@@ -27,7 +32,9 @@ export function distanceToSimilarityPercent(
   if (distance < 0) {
     return 100;
   }
-  return Math.round((100 * (threshold - distance)) / threshold);
+  const linear = (threshold - distance) / threshold;
+  const t = Math.min(1, Math.max(0, linear));
+  return Math.round(100 * t ** SIMILARITY_DISPLAY_GAMMA);
 }
 
 /**
@@ -43,7 +50,7 @@ export function logFaceMatchDebug(
     distancia: Number(distance.toFixed(4)),
     limiar: FACE_MATCH_DISTANCE_THRESHOLD,
     percentualExibido: displayPercent,
-    nota: "Percentual = 100 * (limiar - distância) / limiar, não (1 - d)*100",
+    nota: `100 * linear^${SIMILARITY_DISPLAY_GAMMA}, linear=(limiar-dist)/limiar`,
   };
   if (typeof globalThis !== "undefined" && "console" in globalThis) {
     globalThis.console.debug(`[reconhecimento-facial] ${context}`, payload);
