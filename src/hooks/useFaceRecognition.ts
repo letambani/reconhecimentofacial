@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import * as faceapi from "face-api.js";
-import { Person, initialPersons } from "@/data/persons";
+import { Person, initialPersons, getPersonPhotoSources, BodyMark } from "@/data/persons";
 import {
   FACE_MATCH_DISTANCE_THRESHOLD,
   distanceToSimilarityPercent,
@@ -16,6 +16,27 @@ interface LabeledPerson {
 const REMOTE_MODEL_BASE =
   "https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights";
 
+async function descriptorFromImage(imageSrc: string): Promise<Float32Array | null> {
+  const img = await faceapi.fetchImage(imageSrc);
+  const detection = await faceapi
+    .detectSingleFace(img)
+    .withFaceLandmarks()
+    .withFaceDescriptor();
+  return detection?.descriptor ?? null;
+}
+
+async function addPersonDescriptors(person: Person, labeled: LabeledPerson[]) {
+  for (const photoSrc of getPersonPhotoSources(person)) {
+    try {
+      const descriptor = await descriptorFromImage(photoSrc);
+      if (descriptor) {
+        labeled.push({ person, descriptor });
+      }
+    } catch (e) {
+      console.warn(`Could not process photo for ${person.name}:`, e);
+    }
+  }
+}
 async function loadFaceModels(modelBaseUri: string) {
   await Promise.all([
     faceapi.nets.ssdMobilenetv1.loadFromUri(modelBaseUri),
@@ -63,18 +84,7 @@ export function useFaceRecognition() {
     const labeled: LabeledPerson[] = [];
     try {
       for (const person of persons) {
-        try {
-          const img = await faceapi.fetchImage(person.imageSrc);
-          const detection = await faceapi
-            .detectSingleFace(img)
-            .withFaceLandmarks()
-            .withFaceDescriptor();
-          if (detection) {
-            labeled.push({ person, descriptor: detection.descriptor });
-          }
-        } catch (e) {
-          console.warn(`Could not process ${person.name}:`, e);
-        }
+        await addPersonDescriptors(person, labeled);
       }
       labeledRef.current = labeled;
     } finally {
@@ -154,32 +164,31 @@ export function useFaceRecognition() {
 
   // Add a new person
   const addPerson = useCallback(
-    async (name: string, imageSrc: string, notes?: string) => {
+    async (
+      name: string,
+      imageSrc: string,
+      options?: {
+        notes?: string;
+        bodyMarks?: Omit<BodyMark, "id">[];
+        additionalPhotos?: string[];
+      }
+    ) => {
       const newPerson: Person = {
         id: crypto.randomUUID(),
         name,
         imageSrc,
-        notes: notes || "",
+        notes: options?.notes || "",
+        bodyMarks: (options?.bodyMarks ?? []).map((mark) => ({
+          ...mark,
+          id: crypto.randomUUID(),
+          observation: mark.observation?.trim() || "",
+        })),
+        additionalPhotos: options?.additionalPhotos ?? [],
         registeredAt: new Date().toISOString().split("T")[0],
       };
       setPersons((prev) => [...prev, newPerson]);
 
-      // Also add descriptor
-      try {
-        const img = await faceapi.fetchImage(imageSrc);
-        const detection = await faceapi
-          .detectSingleFace(img)
-          .withFaceLandmarks()
-          .withFaceDescriptor();
-        if (detection) {
-          labeledRef.current.push({
-            person: newPerson,
-            descriptor: detection.descriptor,
-          });
-        }
-      } catch (e) {
-        console.warn("Could not compute descriptor for new person:", e);
-      }
+      await addPersonDescriptors(newPerson, labeledRef.current);
 
       return newPerson;
     },

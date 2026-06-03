@@ -1,10 +1,10 @@
 import { useState, useCallback } from "react";
 import { Shield, Loader2 } from "lucide-react";
 import CameraCapture, { FaceResult } from "@/components/CameraCapture";
-import QuickRegister from "@/components/QuickRegister";
+import QuickRegister, { RegisterPayload } from "@/components/QuickRegister";
 import { useFaceRecognition } from "@/hooks/useFaceRecognition";
 import { distanceToSimilarityPercent } from "@/lib/faceDescriptorSimilarity";
-import { Person } from "@/data/persons";
+import { formatPersonMarks } from "@/data/persons";
 
 type AppState = "camera" | "result" | "register";
 
@@ -40,9 +40,13 @@ export default function Index() {
   );
 
   const handleRegister = useCallback(
-    async (name: string, notes: string) => {
+    async (payload: RegisterPayload) => {
       if (!capturedImage) return;
-      await addPerson(name, capturedImage, notes);
+      await addPerson(payload.name, capturedImage, {
+        notes: payload.notes,
+        bodyMarks: payload.bodyMarks,
+        additionalPhotos: payload.additionalPhotos,
+      });
       reset();
     },
     [addPerson, capturedImage]
@@ -142,6 +146,11 @@ export default function Index() {
                       <p className="text-xs text-muted-foreground">
                         Compatibilidade: {distanceToSimilarityPercent(r.distance)}%
                       </p>
+                      {formatPersonMarks(r.person!).map((markInfo, markIndex) => (
+                        <p key={markIndex} className="text-xs text-muted-foreground">
+                          Marca {markIndex + 1}: {markInfo}
+                        </p>
+                      ))}
                       {r.person!.notes && (
                         <p className="text-xs text-muted-foreground">Obs: {r.person!.notes}</p>
                       )}
